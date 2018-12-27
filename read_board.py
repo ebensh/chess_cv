@@ -12,9 +12,29 @@ import cv2
 
 def main(filename, outfile):
   img = cv2.imread(filename, cv2.IMREAD_COLOR)
+  gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+  lines = cv2.HoughLinesP(image=edges, rho=1, theta=np.pi / 180,
+                          threshold=100, lines=np.array([]),
+                          minLineLength=100, maxLineGap=80)
+  lines = lines.reshape(lines.shape[0], lines.shape[2])
+  vertical_lines = lines[np.abs(lines[:,2] - lines[:, 0]) < 5,:]
+  horizontal_lines = lines[np.abs(lines[:,3] - lines[:, 1]) < 5,:]
+  vertical_lines = vertical_lines[np.argsort(vertical_lines[:,0])]
+  horizontal_lines = horizontal_lines[np.argsort(horizontal_lines[:,1])]
 
-  cv2.imshow('image', img)
-  cv2.waitKey(0)
+  x = vertical_lines[0, 0]
+  y = horizontal_lines[0, 1]
+  width = vertical_lines[8, 0] - x
+  height = horizontal_lines[8, 1] - y
+  print(x, y, width, height)
+
+  cv2.imshow('edges', edges)
+  cv2.imshow('img', img)
+  while True:
+    if cv2.waitKey(0) == ord('q'):
+      return
+
   cv2.destroyAllWindows()
 
 if __name__ == "__main__":
